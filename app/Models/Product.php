@@ -16,12 +16,14 @@ class Product extends Model
         'base_price_fiat',
         'profit_percent',
         'price_toman',
+        'price_source_timestamp',
     ];
 
     protected $casts = [
         'base_price_fiat' => 'decimal:2',
         'profit_percent' => 'decimal:2',
         'price_toman' => 'integer',
+        'price_source_timestamp' => 'integer',
     ];
 
     public function fiat(): BelongsTo

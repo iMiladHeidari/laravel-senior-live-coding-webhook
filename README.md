@@ -47,5 +47,31 @@ The webhook endpoint must be secure, protected from excessive traffic, and handl
 
 ---
 
+## High-Throughput Setup (MySQL + Redis)
+
+`.env.example` defaults to MySQL for the database and Redis for cache, rate limiting and queues:
+
+```bash
+cp .env.example .env && php artisan key:generate
+docker compose up -d                       # mysql:8.4 + redis:7
+php artisan migrate:fresh --seed
+php artisan serve
+php artisan outbox:relay --loop            # publishes outbox events (run 1+)
+php artisan queue:work --queue=prices,broadcasts   # run N workers
+```
+
+The SQLite + database-queue setup above still works for local development.
+
+Seed a large catalog for load testing with `SEED_EXTRA_PRODUCTS=100000 php artisan migrate:fresh --seed`, then for example:
+
+```bash
+hey -n 2000 -c 50 -m POST \
+  -H "Content-Type: application/json" -H "X-Webhook-Token: token-active-live-test-12345" \
+  -d '{"timestamp": 1798965000, "rates": [{"symbol": "USD", "price_irr": 650000}]}' \
+  http://127.0.0.1:8000/api/webhooks/fiat-rates
+```
+
+---
+
 ## Submission
 Commit your changes to a new branch and open a Merge Request describing your approach, architecture, and any performance trade-offs you considered.

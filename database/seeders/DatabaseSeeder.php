@@ -105,5 +105,37 @@ class DatabaseSeeder extends Seeder
                 'price_toman' => $priceToman,
             ]);
         }
+
+        $this->seedLoadTestProducts([$usd, $eur, $gbp], (int) env('SEED_EXTRA_PRODUCTS', 0));
+    }
+
+    /**
+     * @param  list<Fiat>  $fiats
+     */
+    private function seedLoadTestProducts(array $fiats, int $count): void
+    {
+        $now = now();
+
+        for ($offset = 0; $offset < $count; $offset += 1000) {
+            $rows = [];
+
+            for ($i = $offset; $i < min($offset + 1000, $count); $i++) {
+                $fiat = $fiats[$i % count($fiats)];
+                $base = random_int(1000, 500000) / 100;
+                $profit = $i % 3 === 0 ? null : random_int(0, 3000) / 100;
+
+                $rows[] = [
+                    'name' => "Load Test Product {$i}",
+                    'fiat_id' => $fiat->id,
+                    'base_price_fiat' => $base,
+                    'profit_percent' => $profit,
+                    'price_toman' => (int) round($base * ($fiat->current_price_irr / 10) * (1 + ($profit ?? 0) / 100)),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            Product::insert($rows);
+        }
     }
 }

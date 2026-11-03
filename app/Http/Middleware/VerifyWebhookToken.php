@@ -20,7 +20,7 @@ class VerifyWebhookToken
             ], 401);
         }
 
-        $client = WebhookClient::where('token', $token)->first();
+        $client = WebhookClient::findActiveByToken($token);
 
         if (! $client) {
             return response()->json([
